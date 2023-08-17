@@ -303,7 +303,7 @@ export default defineComponent({
 .barcode-value {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
 }
 
 /* Formatting for buttons to open URLs or phone numbers */
