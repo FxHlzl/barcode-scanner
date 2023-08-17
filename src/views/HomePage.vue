@@ -304,6 +304,7 @@ export default defineComponent({
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative; 
 }
 
 /* Formatting for buttons to open URLs or phone numbers */
@@ -320,6 +321,9 @@ export default defineComponent({
 .open-button {
   height: 50px;
   width: 50px;
+  position: fixed;
+  top: 10;
+  right: 0;
 }
 
 .centered-icon {
