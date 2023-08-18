@@ -324,6 +324,7 @@ export default defineComponent({
   position: fixed;
   top: 10;
   right: 0;
+  margin-right: 5%;
 }
 
 .centered-icon {
