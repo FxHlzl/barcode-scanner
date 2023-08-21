@@ -10,17 +10,24 @@
       <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large">Barcode Scanner</ion-title>
-        </ion-toolbar>
-      </ion-header><br />
+        </ion-toolbar> </ion-header
+      ><br />
       <!-- Button to scan a barcode using the camera -->
-      <ion-button expand="full" @click="scanBarcode()">Scan with camera</ion-button>
+      <ion-button expand="full" @click="scanBarcode()"
+        >Scan with camera</ion-button
+      >
       <!-- Button to scan a barcode from an image in the gallery -->
-      <ion-button expand="full" @click="scanBarcodeFromGallery()">Scan from Gallery</ion-button>
+      <ion-button expand="full" @click="scanBarcodeFromGallery()"
+        >Scan from Gallery</ion-button
+      >
       <ion-item text-wrap></ion-item>
 
       <!-- List of scanned barcodes -->
       <ion-list>
-        <ion-item-sliding v-for="(barcode, index) in reversedScannedBarcodes" :key="index">
+        <ion-item-sliding
+          v-for="(barcode, index) in reversedScannedBarcodes"
+          :key="index"
+        >
           <ion-item>
             <ion-grid>
               <ion-row>
@@ -33,8 +40,19 @@
                   <strong>Type:</strong> {{ barcode.valueType }}
                 </ion-col>
                 <ion-col size="4" class="barcode-value">
-                  <ion-button v-if="barcode.valueType == 'URL' || barcode.valueType == 'PHONE'" @click="openOption(barcode)" color="primary" class="open-button">
-                    <ion-icon slot="icon-only" :icon="openOutline" class="centered-icon"></ion-icon>
+                  <ion-button
+                    v-if="
+                      barcode.valueType == 'URL' || barcode.valueType == 'PHONE'
+                    "
+                    @click="openOption(barcode)"
+                    color="primary"
+                    class="open-button"
+                  >
+                    <ion-icon
+                      slot="icon-only"
+                      :icon="openOutline"
+                      class="centered-icon"
+                    ></ion-icon>
                   </ion-button>
                 </ion-col>
               </ion-row>
@@ -50,7 +68,10 @@
               <ion-icon slot="icon-only" :icon="shareIcon"></ion-icon>
               Share
             </ion-item-option>
-            <ion-item-option @click="deleteBarcode(reversedScannedBarcodes.length - index - 1)" color="danger">
+            <ion-item-option
+              @click="deleteBarcode(reversedScannedBarcodes.length - index - 1)"
+              color="danger"
+            >
               <ion-icon slot="icon-only" :icon="trashIcon"></ion-icon>
               Delete
             </ion-item-option>
@@ -164,7 +185,8 @@ export default defineComponent({
   methods: {
     // Function to scan a barcode using the camera, handling permissions and Play Services
     async scanBarcode() {
-      const isAvailable = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+      const isAvailable =
+        await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
       if (!isAvailable.available) {
         try {
           await BarcodeScanner.installGoogleBarcodeScannerModule();
@@ -189,12 +211,11 @@ export default defineComponent({
           return;
         }
         const result = await BarcodeScanner.scan();
-        const barcode = {
-          displayValue: result.barcodes[0].displayValue,
-          format: result.barcodes[0].format,
-          valueType: result.barcodes[0].valueType,
-        };
-        this.scannedBarcodes.push(barcode);
+        this.pushScanResult(
+          result.barcodes[0].displayValue,
+          result.barcodes[0].format,
+          result.barcodes[0].valueType
+        );
         this.saveScannedBarcodes();
       } else {
         const granted = await requestPermissions();
@@ -207,12 +228,11 @@ export default defineComponent({
           return;
         }
         const result = await BarcodeScanner.scan();
-        const barcode = {
-          displayValue: result.barcodes[0].displayValue,
-          format: result.barcodes[0].format,
-          valueType: result.barcodes[0].valueType,
-        };
-        this.scannedBarcodes.push(barcode);
+        this.pushScanResult(
+          result.barcodes[0].displayValue,
+          result.barcodes[0].format,
+          result.barcodes[0].valueType
+        );
         this.saveScannedBarcodes();
       }
     },
@@ -220,13 +240,27 @@ export default defineComponent({
     // Function to scan a barcode from an image in the gallery
     async scanBarcodeFromGallery() {
       const result = await scanFromImage();
+      this.pushScanResult(result.displayValue, result.format, result.valueType);
+      this.saveScannedBarcodes();
+    },
+
+    // Function to format the barcode and push it to "scannedBarcodes"
+    async pushScanResult(
+      displayValue: string,
+      format: string,
+      valueType: string
+    ) {
+      const chunkSize = 28;
+      let shortContent = "";
+      for (let i = 0; i < displayValue.length; i += chunkSize) {
+        shortContent += displayValue.substring(i, i + chunkSize) + "\n";
+      }
       const barcode = {
-        displayValue: result.displayValue,
-        format: result.format,
-        valueType: result.valueType,
+        displayValue: shortContent,
+        format: format,
+        valueType: valueType,
       };
       this.scannedBarcodes.push(barcode);
-      this.saveScannedBarcodes();
     },
 
     // Function to copy the content of a barcode to the clipboard
@@ -293,18 +327,19 @@ export default defineComponent({
   flex-direction: column;
   align-items: center;
 }
+
 /* Styles for list entries */
 .barcode-info {
   font-size: 16px;
   color: #fff;
 }
 
-/* Formatting for barcode values */
+/* Styles for display value */
 .barcode-value {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: relative; 
+  position: relative;
 }
 
 /* Formatting for buttons to open URLs or phone numbers */
@@ -312,6 +347,8 @@ export default defineComponent({
   --background: #007bff;
   --color: #fff;
   --padding-end: 0;
+  height: 50px;
+  width: 50px;
 }
 
 .barcode-value ion-icon {
@@ -319,12 +356,8 @@ export default defineComponent({
 }
 
 .open-button {
-  height: 50px;
-  width: 50px;
-  position: fixed;
-  top: 10;
-  right: 0;
-  margin-right: 5%;
+  position: absolute;
+  right: 10px;
 }
 
 .centered-icon {
